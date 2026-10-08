@@ -1,15 +1,15 @@
 "use client";
-import React, { useState, useEffect, use } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Navbar } from '@/components/Navbar'
 import { ShipmentCard } from '@/components/ShipmentCard'
 import { mapShipmentRows } from '@/lib/mappers'
 import type { UIShipment } from '@/types/ui'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 
-export default function TruckDetail({ params }: { params: Promise<{ id: string }> }) {
+function TruckDetailContent() {
   const router = useRouter()
-  // React 19 unwraps params via use()
-  const { id } = use(params)
+  const params = useParams()
+  const id = params.id as string
   
   const [data, setData] = useState<{ truck: any, shipments: any[] } | null>(null)
   const [loading, setLoading] = useState(true)
@@ -189,5 +189,17 @@ export default function TruckDetail({ params }: { params: Promise<{ id: string }
         </div>
       </div>
     </div>
+  )
+}
+
+export default function TruckDetail() {
+  return (
+    <React.Suspense fallback={
+      <div className="min-h-screen pb-32 bg-cream font-sans flex items-center justify-center">
+        Loading...
+      </div>
+    }>
+      <TruckDetailContent />
+    </React.Suspense>
   )
 }
