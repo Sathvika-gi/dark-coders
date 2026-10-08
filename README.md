@@ -121,17 +121,7 @@ For 19 readings × 0.5h each at 38°C:
 | Secret scan CI gate | `scripts/grep-secrets.sh` scans `.next/static` post-build |
 
 ---
-
-## Environment Variables
-
-```env
-NEXT_PUBLIC_APP_URL=http://localhost:3000    # Only safe public var
-
-SUPABASE_URL=https://xxxx.supabase.co       # Server-only
-SUPABASE_SERVICE_ROLE_KEY=...               # Server-only
-ANTHROPIC_API_KEY=sk-ant-...                # Server-only
-ANTHROPIC_MODEL=claude-sonnet-4-5           # Optional, has default
-SESSION_SECRET=...                          # 32+ random bytes
+```                     
 DISTRIBUTOR_PASSWORD=password123            # Pre-filled in UI on click
 RETAILER_PASSWORD=password456               # Pre-filled in UI on click
 ```
@@ -185,36 +175,7 @@ vercel --prod
 
 ---
 
-## API Reference
 
-### POST /api/telemetry
-```bash
-curl -X POST http://localhost:3000/api/telemetry \
-  -H "x-api-key: YOUR_RAW_INGEST_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "shipment_code": "AGS-101",
-    "readings": [
-      { "temp_c": 38, "humidity_pct": 90, "recorded_at": "2024-01-01T10:00:00Z" }
-    ]
-  }'
-```
-
-### POST /api/simulate (requires distributor cookie)
-```bash
-curl -X POST http://localhost:3000/api/simulate \
-  -H "Cookie: agrosense-session=<token>" \
-  -H "Content-Type: application/json" \
-  -d '{ "shipment_id": "<uuid>", "scenario": "spike" }'
-```
-
-### GET /api/listings?since=<ISO>
-```bash
-curl http://localhost:3000/api/listings \
-  -H "Cookie: agrosense-session=<retailer-token>"
-```
-
----
 
 ## 3-Minute Demo Script
 
