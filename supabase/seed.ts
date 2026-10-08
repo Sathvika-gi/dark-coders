@@ -98,6 +98,32 @@ async function main() {
         initial_life_hours: 48,
         status: "in_transit",
       },
+      {
+        code: "AGS-105",
+        produce_type: "mango",
+        qty_kg: 400,
+        origin: "Ratnagiri",
+        destination: "Mumbai",
+        eta_hours: 8,
+        base_price_per_kg: 150,
+        current_price_per_kg: 150,
+        remaining_life_hours: 140,
+        initial_life_hours: 168,
+        status: "in_transit",
+      },
+      {
+        code: "AGS-106",
+        produce_type: "green_peas",
+        qty_kg: 150,
+        origin: "Surat",
+        destination: "Ahmedabad",
+        eta_hours: 14,
+        base_price_per_kg: 85,
+        current_price_per_kg: 85,
+        remaining_life_hours: 80,
+        initial_life_hours: 96,
+        status: "in_transit",
+      }
     ])
     .select("id, code");
 

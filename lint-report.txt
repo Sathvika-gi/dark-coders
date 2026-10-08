@@ -1,0 +1,121 @@
+D:\hackathons\zephoria\app\(auth)\login\page.tsx
+  34: Unexpected any. Specify a different type.
+  73: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+  74: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+  105: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+D:\hackathons\zephoria\app\api\listings\route.ts
+  36: Unexpected any. Specify a different type.
+  38: Unexpected any. Specify a different type.
+D:\hackathons\zephoria\app\api\reservations\route.ts
+  38: Unexpected any. Specify a different type.
+  61: Unexpected any. Specify a different type.
+D:\hackathons\zephoria\app\api\shipments\route.ts
+  22: Unexpected any. Specify a different type.
+  27: Unexpected any. Specify a different type.
+  27: Unexpected any. Specify a different type.
+D:\hackathons\zephoria\app\dashboard\page.tsx
+  12: 'router' is assigned a value but never used.
+  15: Unexpected any. Specify a different type.
+  16: Unexpected any. Specify a different type.
+  110: '_' is defined but never used.
+  110: 'i' is defined but never used.
+  111: Unexpected any. Specify a different type.
+D:\hackathons\zephoria\app\marketplace\page.tsx
+  128: Unexpected any. Specify a different type.
+  186: Unexpected any. Specify a different type.
+  218: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+  244: Unexpected any. Specify a different type.
+D:\hackathons\zephoria\app\shipments\[id]\page.tsx
+  2: 'useRef' is defined but never used.
+  5: 'ReferenceLine' is defined but never used.
+  33: Unexpected any. Specify a different type.
+  49: Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\hackathons\zephoria\app\shipments\[id]\page.tsx:49:5
+  47 |
+  48 |   useEffect(() => {
+> 49 |     fetchDetail()
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  50 |     // eslint-disable-next-line react-hooks/exhaustive-deps
+  51 |   }, [shipmentId])
+  52 |
+  77: Unexpected any. Specify a different type.
+  105: Unexpected any. Specify a different type.
+  119: 'e' is defined but never used.
+  156: Unexpected any. Specify a different type.
+  174: 'insightRaw' is never reassigned. Use 'const' instead.
+  179: 'rem' is assigned a value but never used.
+  191: Unexpected any. Specify a different type.
+  381: 'v' is defined but never used.
+  385: 'v' is defined but never used.
+  389: Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+D:\hackathons\zephoria\app\shipments\[id]\page.tsx:389:40
+  387 |                       domain={[0, 'auto']}
+  388 |                     />
+> 389 |                     <Tooltip content={<CustomTooltip />} />
+      |                                        ^^^^^^^^^^^^^ This component is created during render
+  390 |                     {/* Safe band */}
+  391 |                     {s.ideal_temp_range && (
+  392 |                       <ReferenceArea y1={s.ideal_temp_range[0]} y2={s.ideal_temp_range[1]} fill="#2F9E5B" fillOpacity={0.08} />
+
+D:\hackathons\zephoria\app\shipments\[id]\page.tsx:191:25
+  189 |
+  190 |   // Chart Tooltip
+> 191 |   const CustomTooltip = ({ active, payload, label }: any) => {
+      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 192 |     if (!active || !payload?.length) return null
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 193 |     
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 206 |     )
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 207 |   }
+      | ^^^^ The component is created during render here
+  208 |
+  209 |   return (
+  210 |     <div className="min-h-screen pb-32 bg-cream font-sans">
+  411: Unexpected any. Specify a different type.
+  424: Unexpected any. Specify a different type.
+  478: Unexpected any. Specify a different type.
+  478: Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\hackathons\zephoria\app\shipments\[id]\page.tsx:478:84
+  476 |
+  477 |         {/* New alert from spike (derived from alerts API if within last 2 minutes and critical) */}
+> 478 |         {data.alerts && data.alerts.some((a: any) => a.severity === 'critical' && (Date.now() - new Date(a.created_at).getTime() < 120000)) && (
+      |                                                                                    ^^^^^^^^^^ Cannot call impure function
+  479 |           <div
+  480 |             className="rounded-2xl p-4 mb-6 flex items-center gap-3 animate-scale-in"
+  481 |             style={{ background: 'var(--color-critical-bg)', border: '1px solid #F5C6C7' }}
+D:\hackathons\zephoria\hooks\usePolling.ts
+  36: Unexpected any. Specify a different type.
+  51: Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\hackathons\zephoria\hooks\usePolling.ts:51:5
+  49 |     
+  50 |     // Initial fetch
+> 51 |     fetcher();
+     |     ^^^^^^^ Avoid calling setState() directly within an effect
+  52 |     
+  53 |     let interval: NodeJS.Timeout | null = null;
+  54 |     
+D:\hackathons\zephoria\lib\db.ts
+  47: Unexpected any. Specify a different type.

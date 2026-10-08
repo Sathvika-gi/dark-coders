@@ -1,0 +1,71 @@
+﻿
+> zephoria@0.1.0 lint
+> eslint
+
+
+D:\hackathons\zephoria\app\api\demo\reset\route.ts
+  16:28  warning  'req' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\hackathons\zephoria\app\api\listings\route.ts
+  36:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\hackathons\zephoria\app\api\reservations\route.ts
+  38:113  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  61:15   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\hackathons\zephoria\app\api\shipments\route.ts
+  22:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  27:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  27:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\hackathons\zephoria\app\dashboard\page.tsx
+  108:41  warning  'i' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\hackathons\zephoria\app\marketplace\page.tsx
+  248:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\hackathons\zephoria\app\shipments\[id]\page.tsx
+   21:68   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+   95:17   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  123:17   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  137:14   warning  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  164:45   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  175:39   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  185:63   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  191:40   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  194:7    error    'insightRaw' is never reassigned. Use 'const' instead                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   prefer-const
+  199:11   warning  'rem' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+  210:17   error    Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\hackathons\zephoria\app\shipments\[id]\page.tsx:210:17
+  208 |   })()
+  209 |   
+> 210 |   const nowMs = Date.now()
+      |                 ^^^^^^^^^^ Cannot call impure function
+  211 |   const alerts = Array.isArray(data.alerts) ? data.alerts : []
+  212 |
+  213 |   return (  react-hooks/purity
+  385:39   warning  'val' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  389:39   warning  'val' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  415:107  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  428:41   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  482:26   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+
+D:\hackathons\zephoria\components\AIInsightCard.tsx
+  7:17  warning  'Sparkles' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\hackathons\zephoria\components\ShipmentCard.tsx
+  31:9  warning  'state' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\hackathons\zephoria\lib\db.ts
+  47:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\hackathons\zephoria\lib\pipeline.ts
+  153:11  warning  'templateInsight' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 30 problems (21 errors, 9 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+

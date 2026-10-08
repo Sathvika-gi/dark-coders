@@ -13,7 +13,7 @@ const DEMO_CODE = "AGS-101";
 const DEMO_INITIAL_LIFE = 120;
 const DEMO_BASE_PRICE = 40;
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   // ── 1. Require distributor ────────────────────────────────────────────
   const authResult = await requireRole("distributor");
   if (authResult instanceof Response) return authResult;
