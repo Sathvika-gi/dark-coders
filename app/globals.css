@@ -1,0 +1,215 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+
+/* ── Design tokens ─────────────────────────────────────────────────────── */
+:root {
+  --bg-base: #0b0f1a;
+  --bg-card: rgba(255, 255, 255, 0.04);
+  --bg-card-hover: rgba(255, 255, 255, 0.07);
+  --border: rgba(255, 255, 255, 0.09);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+
+  /* Freshness semantic colors */
+  --fresh: #10b981;       /* emerald — healthy */
+  --warning: #f59e0b;     /* amber — at risk */
+  --critical: #ef4444;    /* red — spoiling */
+  --info: #6366f1;        /* indigo — info actions */
+
+  /* Text */
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+
+  /* Gradients */
+  --grad-hero: linear-gradient(135deg, #0b0f1a 0%, #0d1630 50%, #0b1520 100%);
+  --grad-fresh: linear-gradient(135deg, #064e3b, #065f46);
+  --grad-warn: linear-gradient(135deg, #78350f, #92400e);
+  --grad-crit: linear-gradient(135deg, #7f1d1d, #991b1b);
+}
+
+/* ── Base reset ───────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbar (dark theme) ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* ── Glassmorphism card ───────────────────────────────────────────────── */
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  transition: border-color 0.2s, background 0.2s;
+}
+.glass-card:hover { border-color: rgba(255, 255, 255, 0.15); }
+.glass-card-sm {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+}
+
+/* ── Status badge ─────────────────────────────────────────────────────── */
+.badge-fresh    { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+.badge-warning  { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+.badge-critical { background: rgba(239,68,68,0.15);  color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+.badge-info     { background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3); }
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border-radius: 10px; font-weight: 600;
+  font-size: 14px; border: none; cursor: pointer; transition: all 0.18s;
+  letter-spacing: 0.01em;
+}
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 4px 16px rgba(16,185,129,0.3);
+}
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 4px 24px rgba(16,185,129,0.5);
+  transform: translateY(-1px);
+}
+.btn-warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  box-shadow: 0 4px 16px rgba(245,158,11,0.3);
+}
+.btn-warning:hover:not(:disabled) {
+  box-shadow: 0 4px 24px rgba(245,158,11,0.5);
+  transform: translateY(-1px);
+}
+.btn-critical {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  box-shadow: 0 4px 16px rgba(239,68,68,0.3);
+}
+.btn-critical:hover:not(:disabled) {
+  box-shadow: 0 4px 24px rgba(239,68,68,0.5);
+  transform: translateY(-1px);
+}
+.btn-ghost {
+  background: rgba(255,255,255,0.06);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-primary);
+}
+
+/* ── Input ────────────────────────────────────────────────────────────── */
+.input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-size: 14px;
+  width: 100%;
+  transition: border-color 0.18s;
+  outline: none;
+}
+.input:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.12); }
+.input::placeholder { color: var(--text-muted); }
+
+/* ── Skeleton loading ─────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.skeleton {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.06) 25%,
+    rgba(255,255,255,0.11) 50%,
+    rgba(255,255,255,0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+  border-radius: 8px;
+}
+
+/* ── Pulse animation for NEW badge ───────────────────────────────────── */
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+  70%  { box-shadow: 0 0 0 10px rgba(239,68,68,0); }
+  100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+}
+.pulse-critical { animation: pulse-ring 1.5s infinite; }
+
+/* ── Freshness gauge container ────────────────────────────────────────── */
+.gauge-track {
+  fill: none;
+  stroke: rgba(255,255,255,0.08);
+}
+.gauge-fill-fresh    { stroke: #10b981; }
+.gauge-fill-warning  { stroke: #f59e0b; }
+.gauge-fill-critical { stroke: #ef4444; }
+
+/* ── Toast ────────────────────────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+  max-width: 380px; padding: 16px 20px;
+  background: rgba(15, 20, 35, 0.95);
+  border: 1px solid rgba(239,68,68,0.4);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(239,68,68,0.1);
+  backdrop-filter: blur(20px);
+}
+
+/* ── Navigation ───────────────────────────────────────────────────────── */
+.navbar {
+  background: rgba(11,15,26,0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+}
+
+/* ── Freshness indicator color helper classes ─────────────────────────── */
+.text-fresh    { color: #10b981; }
+.text-warning  { color: #f59e0b; }
+.text-critical { color: #ef4444; }
+.text-muted    { color: var(--text-muted); }
+.text-secondary { color: var(--text-secondary); }
+
+/* ── Route progress gradient ──────────────────────────────────────────── */
+.route-progress-fill {
+  background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+/* ── Strikethrough price ──────────────────────────────────────────────── */
+.price-strikethrough {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* ── Recharts custom overrides ────────────────────────────────────────── */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: rgba(255,255,255,0.05);
+}
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: rgba(15,20,35,0.95) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+}
