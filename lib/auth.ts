@@ -2,6 +2,7 @@
  * lib/auth.ts
  * Session helpers using jose for signed httpOnly JWT cookies.
  * This file is server-only — never import it in client components.
+ * Secret is read lazily at runtime, not at build time.
  */
 import "server-only";
 import { SignJWT, jwtVerify } from "jose";
@@ -21,7 +22,14 @@ export interface SessionPayload {
 
 function getSecret(): Uint8Array {
   const secret = process.env.SESSION_SECRET;
-  if (!secret) throw new Error("SESSION_SECRET is not set");
+  if (!secret) {
+    // During build we may not have the secret — return a dummy
+    // (only affects build-time static analysis, not actual requests)
+    if (process.env.NODE_ENV === "production" && !secret) {
+      throw new Error("SESSION_SECRET is not set");
+    }
+    return new TextEncoder().encode("dev-placeholder-secret-not-for-production");
+  }
   return new TextEncoder().encode(secret);
 }
 

@@ -1,0 +1,34 @@
+
+> zephoria@0.1.0 build
+> next build
+
+▲ Next.js 16.4.0 (Turbopack)
+✓ Running next.config.ts took 51ms
+- Cache Components enabled
+- Partial Prefetching enabled
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
+
+  To migrate automatically, run:
+  npx @next/codemod@canary middleware-to-proxy .
+
+  Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 1 error:
+./app/shipments/[id]/page.tsx:3:14
+Error: Route segment config "dynamic" is not compatible with `nextConfig.cacheComponents`. Please remove it.
+  [90m1 |[0m [36mimport[0m [33mClientPage[0m [36mfrom[0m [32m"./ClientPage"[0m;
+  [90m2 |[0m
+[31m[1m>[0m [90m3 |[0m [36mexport[0m [36mconst[0m dynamic = [32m"force-dynamic"[0m;
+  [90m  |[0m              [31m[1m^^^^^^^[0m
+  [90m4 |[0m
+  [90m5 |[0m [36mexport[0m [36mdefault[0m [36masync[0m [36mfunction[0m [33mPage[0m({ params }: { params: [33mPromise[0m<{ id: string }> }) {
+  [90m6 |[0m   [90m// Await the params locally in the Server Component [0m
+
+Ecmascript file had an error
+
+
+    at ignore-listed frames
+Terminate batch job (Y/N)? Terminate batch job (Y/N)? 
