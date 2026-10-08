@@ -22,7 +22,7 @@ interface ListingCardProps {
 
 function ListingCard({ listing, onReserve }: ListingCardProps) {
   const fc = freshnessColor(listing.freshnessHours)
-  const formatHours = (h: number) => h >= 24 ? `\${Math.floor(h / 24)}d \${h % 24}h` : `\${Math.floor(h)}h`
+  const formatHours = (h: number) => h >= 24 ? `${Math.floor(h / 24)}d ${h % 24}h` : `${Math.floor(h)}h`
 
   return (
     <div
@@ -121,7 +121,7 @@ export default function RetailerMarketplace() {
   const knownListingIds = useRef<Set<string>>(new Set())
 
   const [reserving, setReserving] = useState<UIListing | null>(null)
-  const [qty, setQty] = useState(10) // 10kg default
+  const [qty, setQty] = useState(1) // 1 unit default
   const [reserveStatus, setReserveStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [reserveError, setReserveError] = useState('')
 
@@ -162,7 +162,7 @@ export default function RetailerMarketplace() {
 
   const handleReserve = (listing: UIListing) => {
     setReserving(listing)
-    setQty(Math.min(50, listing.availableKg))
+    setQty(Math.min(1, listing.availableKg))
     setReserveStatus('idle')
     setReserveError('')
   }
@@ -205,8 +205,8 @@ export default function RetailerMarketplace() {
       {/* Smart Toast */}
       <Toast
         visible={!!toast}
-        message={toast ? `Flash markdown: \${toast.produce} −\${toast.discount}%` : ''}
-        subtext={toast ? `\${Math.floor(toast.remainingHours)}h freshness left — act fast` : ''}
+        message={toast ? `Flash markdown: ${toast.produce} −${toast.discount}%` : ''}
+        subtext={toast ? `${Math.floor(toast.remainingHours)}h freshness left — act fast` : ''}
         onView={() => setToast(null)}
         onDismiss={() => setToast(null)}
       />
@@ -286,7 +286,7 @@ export default function RetailerMarketplace() {
       <Drawer
         open={!!reserving}
         onClose={handleCloseDrawer}
-        title={reserveStatus === 'success' ? 'Reserved!' : `Reserve \${reserving?.produce || ''}`}
+        title={reserveStatus === 'success' ? 'Reserved!' : `Reserve ${reserving?.produce || ''}`}
       >
         {reserving && reserveStatus !== 'success' && (
           <div className="flex flex-col h-full">
@@ -296,17 +296,17 @@ export default function RetailerMarketplace() {
               <span className="text-3xl">{reserving.emoji}</span>
               <div>
                 <p className="font-semibold text-green-black">{reserving.produce}</p>
-                <p className="text-xs text-muted">{reserving.availableKg}kg available</p>
+                <p className="text-xs text-muted">{reserving.quantityStr}</p>
               </div>
             </div>
 
             <div className="mb-6">
               <label className="block text-sm font-medium mb-3 text-green-black">
-                Quantity (kg)
+                Quantity (units)
               </label>
               <div className="flex items-center gap-4">
                 <button
-                  onClick={() => setQty(q => Math.max(10, q - 10))}
+                  onClick={() => setQty(q => Math.max(1, q - 1))}
                   className="w-10 h-10 rounded-xl border border-border flex items-center justify-center text-lg font-semibold transition-colors hover:bg-cream text-green-black"
                 >
                   −
@@ -317,7 +317,7 @@ export default function RetailerMarketplace() {
                   {qty}
                 </span>
                 <button
-                  onClick={() => setQty(q => Math.min(reserving.availableKg, q + 10))}
+                  onClick={() => setQty(q => Math.min(reserving.availableKg, q + 1))}
                   className="w-10 h-10 rounded-xl border border-border flex items-center justify-center text-lg font-semibold transition-colors hover:bg-cream text-green-black"
                 >
                   +
@@ -329,7 +329,7 @@ export default function RetailerMarketplace() {
               className="rounded-2xl p-4 mb-6 bg-cream border border-border"
             >
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-muted">Unit price (per kg)</span>
+                <span className="text-muted">Unit price</span>
                 <span className="text-green-black">₹{reserving.discountedPrice}</span>
               </div>
               <div className="flex justify-between text-sm mb-3">
@@ -380,10 +380,10 @@ export default function RetailerMarketplace() {
               >
                 Reserved!
               </h3>
-              <p className="text-sm text-muted">
-                {qty}kg of {reserving.produce} reserved successfully.
+              <p className="text-sm text-muted mb-2">
+                {qty} × {reserving.produce} reserved successfully.
                 <br />
-                Collect within {reserving.freshnessHours > 24 ? `\${Math.floor(reserving.freshnessHours / 24)} days` : `\${Math.floor(reserving.freshnessHours)} hours`}.
+                Collect within {reserving.freshnessHours > 24 ? `${Math.floor(reserving.freshnessHours / 24)} days` : `${Math.floor(reserving.freshnessHours)} hours`}.
               </p>
             </div>
             <div

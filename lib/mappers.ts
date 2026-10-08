@@ -57,22 +57,22 @@ export function mapListingRows(row: any, currentSessionStart: Date = new Date())
   const createdRecently = (Date.now() - createdDate.getTime()) < 120_000
   const createdAfterSession = createdDate.getTime() > currentSessionStart.getTime()
   
-  // Available kg = qty_kg - reserved (which needs to be calculated in the API)
-  const availableKg = row.available_kg ?? row.shipments?.qty_kg ?? 0
+  // Available units or kg
+  const availableKg = row.available_units ?? row.available_kg ?? row.shipments?.qty_kg ?? 0
 
   return {
     id: row.id,
     produce: ui.label,
     emoji: ui.emoji,
     category: ui.category,
-    quantityStr: `${row.shipments?.qty_kg ?? 0} kg lot`,
+    quantityStr: row.qty_str || `${row.shipments?.qty_kg ?? 0} kg lot`,
     originalPrice: row.original_price,
     discountedPrice: row.discounted_price,
     discountPct: row.discount_pct,
     freshnessHours: row.remaining_life_hours,
     aiLine: row.retailer_message,
     isFlashSale,
-    isNew: createdAfterSession || createdRecently,
+    isNew: row.isNew ?? createdAfterSession ?? createdRecently,
     availableKg
   }
 }

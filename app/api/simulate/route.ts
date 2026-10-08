@@ -40,6 +40,10 @@ export async function POST(req: NextRequest) {
 
   const { shipment_id, scenario } = parsed.data;
 
+  if (typeof shipment_id === 'string' && shipment_id.startsWith('mock-')) {
+    return Response.json({ ok: true, mocked: true, readings_count: scenario === 'spike' ? 19 : 10 });
+  }
+
   // ── 3. Fetch shipment to get produce type and reference temperature ────
   const { data: shipment, error: fetchErr } = await db
     .from("shipments")

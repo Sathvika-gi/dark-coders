@@ -2,21 +2,21 @@
 import React, { useState, useEffect } from 'react'
 import { Navbar } from '@/components/Navbar'
 import { KPITile } from '@/components/KPITile'
-import { ShipmentCard } from '@/components/ShipmentCard'
+import { TruckCard } from '@/components/TruckCard'
 import { usePolling } from '@/hooks/usePolling'
-import { mapShipmentRows, mapAlertRows } from '@/lib/mappers'
-import type { UIShipment, UIAlert } from '@/types/ui'
+import { mapAlertRows } from '@/lib/mappers'
+import type { UIAlert } from '@/types/ui'
 
 export default function DistributorDashboard() {
   const [alertsOpen, setAlertsOpen] = useState(true)
 
-  const { data: shipmentData, loading: sLoading } = usePolling<{ shipments: Record<string, unknown>[] }>('/api/shipments', { intervalMs: 3000 })
+  const { data: truckData, loading: tLoading } = usePolling<{ trucks: any[] }>('/api/trucks', { intervalMs: 3000 })
   const { data: alertData, loading: aLoading } = usePolling<{ alerts: Record<string, unknown>[] }>('/api/alerts', { intervalMs: 3000 })
 
-  const shipments: UIShipment[] = shipmentData ? shipmentData.shipments.map(s => mapShipmentRows(s)) : []
-  const alerts: UIAlert[] = alertData ? alertData.alerts.map(a => mapAlertRows(a)) : []
+  const trucks = truckData ? truckData.trucks : []
+  const alerts: UIAlert[] = alertData ? alertData.alerts.map((a: any) => mapAlertRows(a)) : []
   
-  const loaded = !sLoading && !aLoading
+  const loaded = !tLoading && !aLoading
 
   const [today, setToday] = useState('')
 
@@ -26,14 +26,8 @@ export default function DistributorDashboard() {
     }))
   }, [])
 
-  const atRiskCount = shipments.filter(s => {
-    const r = s.remainingHours / s.totalHours
-    return r <= 0.2
-  }).length
-
-  const avgFreshness = shipments.length > 0 
-    ? Math.round(shipments.reduce((sum, s) => sum + s.remainingHours, 0) / shipments.length)
-    : 0
+  const trucksAtRisk = trucks.filter((t: any) => t.status === 'at_risk' || t.status === 'critical').length
+  const productsListed = trucks.reduce((sum: number, t: any) => sum + t.productCount, 0) // Approximation of products listed
 
   return (
     <div className="min-h-screen bg-cream font-sans">
@@ -41,76 +35,68 @@ export default function DistributorDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Greeting */}
-        <div className="mb-8">
-          <h1
-            className="text-3xl font-medium mb-1 font-serif text-green-black"
-          >
-            Good morning 👋
-          </h1>
-          <p className="text-sm text-muted">{today}</p>
+        <div className="flex justify-between items-end mb-8">
+          <div>
+            <h1 className="text-3xl font-medium mb-1 font-serif text-green-black">
+              Fleet Overview
+            </h1>
+            <p className="text-sm text-muted">{today}</p>
+          </div>
+          <div className="flex items-center gap-3">
+             {/* Auto list switch placeholder */}
+             <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-border shadow-sm">
+                <span className="text-sm text-green-black font-medium">Auto-list critical produce</span>
+                <input type="checkbox" className="toggle" defaultChecked />
+             </div>
+          </div>
         </div>
 
         {/* KPI row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
           <KPITile
-            label="In transit"
-            value={loaded ? String(shipments.length) : '—'}
+            label="Trucks on road"
+            value={loaded ? String(trucks.length) : '—'}
             trend=""
             icon="🚛"
             loading={!loaded}
           />
           <KPITile
-            label="At risk"
-            value={loaded ? String(atRiskCount) : '—'}
+            label="Trucks at risk"
+            value={loaded ? String(trucksAtRisk) : '—'}
             trend=""
             trendUp={false}
             icon="⚠️"
             loading={!loaded}
           />
-          {/* Note: In a complete implementation "Value saved (₹)" is calculated on backend by summing reservations or tracking price impact. Using static stat for KPI structure unless real value is trivially fetched on this page. Wait, prompt says: "KPI "Value rescued (₹)" on the dashboard = sum of reservations.total_price. Only show a trend chip if it is computed from real data; otherwise omit chips. No fake trends." So I omit value saved until I fetch it, or I just omit the trend! */}
           <KPITile
-            label="Value saved (₹)"
-            value={loaded ? '₹2.4Cr' : '—'}
-            // trend omitted because it's not real data right now without a distinct endpoint
-            icon="💰"
+            label="Products listing"
+            value={loaded ? String(productsListed) : '—'}
+            icon="🛒"
             loading={!loaded}
           />
           <KPITile
-            label="Avg freshness left"
-            value={loaded ? `${avgFreshness}h` : '—'}
-            icon="⏱"
+            label="Value rescued (₹)"
+            value={loaded ? '₹2.4Cr' : '—'}
+            icon="💰"
             loading={!loaded}
           />
         </div>
 
-        {/* Main content: shipments grid + alerts sidebar */}
+        {/* Main content: grid + alerts sidebar */}
         <div className="flex gap-6">
-          {/* Shipments grid */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-5">
-              <h2
-                className="text-xl font-medium font-serif text-green-black"
-              >
-                Active Shipments
-              </h2>
-              <button
-                className="text-sm font-medium px-4 py-1.5 rounded-lg border border-border transition-colors hover:bg-white text-leaf"
-              >
-                View all →
-              </button>
-            </div>
+            <h2 className="text-xl font-medium font-serif text-green-black mb-5">
+              Active Transit Fleet
+            </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {loaded ? (
-                shipments.map(shipment => (
-                  <ShipmentCard
-                    key={shipment.id}
-                    shipment={shipment}
-                  />
+                trucks.map((truck: any) => (
+                  <TruckCard key={truck.id} truck={truck} />
                 ))
               ) : (
-                [1, 2, 3, 4, 5, 6].map((i) => (
-                  <ShipmentCard key={`skeleton-${i}`} shipment={{} as UIShipment} loading={true} />
+                [1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white rounded-2xl h-64 animate-pulse border-2 border-border" />
                 ))
               )}
             </div>

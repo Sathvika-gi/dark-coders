@@ -24,6 +24,55 @@ export async function GET(
     .eq("id", id)
     .single();
 
+  if (id.startsWith('mock-')) {
+    const isSpike = id.includes('101');
+    const produceMap: Record<string, any> = {
+      'mock-shipment-101': { p: 'tomato', o: 'Nashik', d: 'Mumbai', init: 120, rem: 11, s: 'critical', t: 38.1, ideal: [10, 14] },
+      'mock-shipment-104': { p: 'strawberry', o: 'Mahabaleshwar', d: 'Bangalore', init: 72, rem: 31, s: 'in_transit', t: 2.0, ideal: [0, 4] },
+      'mock-shipment-102': { p: 'banana', o: 'Jalgaon', d: 'Pune', init: 240, rem: 101, s: 'at_risk', t: 13.9, ideal: [13, 15] }
+    };
+    
+    const meta = produceMap[id] || produceMap['mock-shipment-101'];
+    
+    const mockTelemetry = [];
+    const now = new Date();
+    for (let i = 24; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 3600000).toISOString();
+      const tempFloat = isSpike && i <= 8 
+        ? 38.1 + Math.sin(i * 0.5) * 0.2 
+        : meta.t + Math.sin(i * 0.8) * 0.6;
+        
+      mockTelemetry.push({
+        recorded_at: d,
+        temp_c: Number(tempFloat.toFixed(1)),
+        humidity_pct: 90 + Math.round(Math.cos(i) * 3)
+      });
+    }
+
+    const mockShipment = {
+      id,
+      code: id.replace('mock-shipment-', 'AGS-'),
+      produce_type: meta.p,
+      origin: meta.o,
+      destination: meta.d,
+      initial_life_hours: meta.init,
+      remaining_life_hours: meta.rem,
+      status: meta.s,
+      current_price_per_kg: isSpike ? 22 : 40,
+      base_price_per_kg: 40,
+      current_tier: isSpike ? 'tier45' : 'none',
+      ideal_temp_range: meta.ideal
+    };
+
+    return Response.json({
+      shipment: mockShipment,
+      telemetry: mockTelemetry,
+      alerts: isSpike ? [{ severity: 'critical', message: 'Critical temperature spike logged — price markdown auto-applied', created_at: new Date().toISOString() }] : [],
+      breakdown: [],
+      active_listing: isSpike ? { original_price: 40, discounted_price: 22, discount_pct: 45, reason: 'AI: Sustained 38.1°C temperature causing rapid degradation.' } : null
+    });
+  }
+
   if (shipErr || !shipment) {
     return Response.json({ error: "Shipment not found" }, { status: 404 });
   }

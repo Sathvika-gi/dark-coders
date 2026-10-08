@@ -6,8 +6,13 @@ export interface ProduceUI {
 
 export const PRODUCE_UI_DICT: Record<string, ProduceUI> = {
   tomato: {
-    label: 'Tomatoes',
+    label: 'Cherry Tomatoes',
     emoji: '🍅',
+    category: 'vegetable'
+  },
+  spinach: {
+    label: 'Baby Spinach',
+    emoji: '🥬',
     category: 'vegetable'
   },
   mango: {
@@ -19,6 +24,16 @@ export const PRODUCE_UI_DICT: Record<string, ProduceUI> = {
     label: 'Green Peas',
     emoji: '🫛',
     category: 'vegetable'
+  },
+  banana: {
+    label: 'Bananas',
+    emoji: '🍌',
+    category: 'fruit'
+  },
+  strawberry: {
+    label: 'Strawberries',
+    emoji: '🍓',
+    category: 'fruit'
   }
 }
 

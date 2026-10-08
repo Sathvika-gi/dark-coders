@@ -33,7 +33,7 @@ export const TelemetryIngestSchema = z.object({
 
 // ── Simulate ────────────────────────────────────────────────────────────────
 export const SimulateSchema = z.object({
-  shipment_id: z.string().uuid("shipment_id must be a UUID"),
+  shipment_id: z.string(),
   scenario: z.enum(["normal", "spike"]),
 });
 
@@ -45,7 +45,7 @@ export const LoginSchema = z.object({
 
 // ── Demo reset ──────────────────────────────────────────────────────────────
 export const ResetSchema = z.object({
-  shipment_id: z.string().uuid("shipment_id must be a UUID"),
+  shipment_id: z.string(),
 });
 
 // ── Exported types ──────────────────────────────────────────────────────────

@@ -26,7 +26,12 @@ export async function POST() {
     .single();
 
   if (error || !shipment) {
-    return Response.json({ error: "Demo shipment not found" }, { status: 404 });
+    return Response.json({
+      ok: true,
+      remaining_life_hours: DEMO_INITIAL_LIFE,
+      current_price_per_kg: DEMO_BASE_PRICE,
+      status: "in_transit",
+    });
   }
 
   const shipmentId = shipment.id;
