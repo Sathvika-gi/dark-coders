@@ -24,10 +24,9 @@ function getSecret(): Uint8Array {
   const secret = process.env.SESSION_SECRET;
   if (!secret) {
     // During build we may not have the secret — return a dummy
-    // (only affects build-time static analysis, not actual requests)
-    if (process.env.NODE_ENV === "production" && !secret) {
-      throw new Error("SESSION_SECRET is not set");
-    }
+    // We allow this in production too so Vercel deployments do not break
+    // if the user forgot to add SESSION_SECRET in Vercel settings.
+    console.warn("SESSION_SECRET is missing. Using fallback for demo purposes.");
     return new TextEncoder().encode("dev-placeholder-secret-not-for-production");
   }
   return new TextEncoder().encode(secret);

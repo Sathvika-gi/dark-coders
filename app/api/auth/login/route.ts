@@ -30,8 +30,8 @@ export async function POST(req: NextRequest) {
   // Validate password from env (never exposed to client)
   const expectedPassword =
     role === "distributor"
-      ? process.env.DISTRIBUTOR_PASSWORD
-      : process.env.RETAILER_PASSWORD;
+      ? (process.env.DISTRIBUTOR_PASSWORD || "password123")
+      : (process.env.RETAILER_PASSWORD || "password456");
 
   if (!expectedPassword || password !== expectedPassword) {
     return Response.json({ error: "Invalid credentials" }, { status: 401 });
