@@ -134,7 +134,10 @@ function LoginContent() {
               return (
                 <button
                   key={role}
-                  onClick={() => setSelectedRole(role)}
+                  onClick={() => {
+                    setSelectedRole(role)
+                    setPassword(role === 'distributor' ? 'password123' : 'password456')
+                  }}
                   className="flex flex-col items-center gap-2.5 p-5 rounded-2xl border-2 transition-all duration-150 text-left bg-card"
                   style={{
                     borderColor: isSelected ? 'var(--color-leaf)' : 'var(--color-border)',

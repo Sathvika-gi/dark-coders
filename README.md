@@ -132,8 +132,8 @@ SUPABASE_SERVICE_ROLE_KEY=...               # Server-only
 ANTHROPIC_API_KEY=sk-ant-...                # Server-only
 ANTHROPIC_MODEL=claude-sonnet-4-5           # Optional, has default
 SESSION_SECRET=...                          # 32+ random bytes
-DISTRIBUTOR_PASSWORD=...
-RETAILER_PASSWORD=...
+DISTRIBUTOR_PASSWORD=password123            # Pre-filled in UI on click
+RETAILER_PASSWORD=password456               # Pre-filled in UI on click
 ```
 
 ---
@@ -218,7 +218,7 @@ curl http://localhost:3000/api/listings \
 
 ## 3-Minute Demo Script
 
-1. **(0:00)** Open `/login`. Click **Distributor** → enter password → sign in.
+1. **(0:00)** Open `/login`. Click **Distributor** (password `password123` is automatically pre-filled) → sign in.
 2. **(0:20)** Dashboard: AGS-101 Tomatoes, green gauge showing **5d (120h)**, full ₹40/kg.
 3. **(0:40)** Click AGS-101 → Shipment detail: temp chart, model breakdown, route progress.
 4. **(1:00)** Click **Simulate Spike (38°C)**. Watch 6-step progress animation.  

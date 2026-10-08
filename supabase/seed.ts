@@ -36,13 +36,42 @@ async function main() {
   // ── 1. Clear existing seed data (idempotent re-runs) ──────────────────────
   await supabase.from("rate_limits").delete().neq("key", "___never___");
   await supabase.from("ai_logs").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await supabase.from("reservations").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await supabase.from("listings").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await supabase.from("alerts").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   // telemetry is append-only — we skip to avoid trigger; fresh DB only
   await supabase.from("ingest_keys").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await supabase.from("shipments").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await supabase.from("trucks").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await supabase.from("retailers").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await supabase.from("settings").delete().neq("key", "___never___");
 
-  // ── 2. Shipments ──────────────────────────────────────────────────────────
+  // ── 1.5. Settings & Retailers ─────────────────────────────────────────────
+  await supabase.from("settings").insert({ key: "auto_list_critical", value: true });
+
+  await supabase.from("retailers").insert([
+    { name: "Green Basket", area: "T. Nagar", distance_km: 3.2 },
+    { name: "FreshMart", area: "Anna Nagar", distance_km: 5.8 },
+    { name: "Daily Fresh", area: "Velachery", distance_km: 8.4 },
+  ]);
+
+  // ── 2. Trucks ───────────────────────────────────────────────────────────
+  const { data: trucks, error: trkErr } = await supabase
+    .from("trucks")
+    .insert([
+      { code: "TRK-101", plate: "TN-09-AB-1234", driver_name: "Ramesh K.", driver_phone: "9876543210", origin: "Hosur", destination: "Koyambedu Market, Chennai" },
+      { code: "TRK-102", plate: "TN-10-XY-9876", driver_name: "Suresh P.", driver_phone: "9876543211", origin: "Krishnagiri", destination: "Koyambedu Market, Chennai" },
+      { code: "TRK-103", plate: "TN-04-ZZ-5555", driver_name: "Kumar V.", driver_phone: "9876543212", origin: "Theni", destination: "Koyambedu Market, Chennai" },
+    ])
+    .select("id, code");
+
+  if (trkErr) throw new Error("Trucks insert: " + trkErr.message);
+
+  const t101 = trucks?.find(t => t.code === "TRK-101")?.id;
+  const t102 = trucks?.find(t => t.code === "TRK-102")?.id;
+  const t103 = trucks?.find(t => t.code === "TRK-103")?.id;
+
+  // ── 3. Shipments ────────────────────────────────────────────────────────
   const { data: ships, error: shipErr } = await supabase
     .from("shipments")
     .insert([
@@ -50,79 +79,99 @@ async function main() {
         code: "AGS-101",
         produce_type: "tomato",
         qty_kg: 500,
-        origin: "Nashik",
-        destination: "Mumbai",
+        origin: "Hosur", // matching TRK-101
+        destination: "Koyambedu Market, Chennai",
         eta_hours: 30,
         base_price_per_kg: 40,
         current_price_per_kg: 40,
         remaining_life_hours: 120,
         initial_life_hours: 120,
         status: "in_transit",
-      },
-      {
-        code: "AGS-102",
-        produce_type: "banana",
-        qty_kg: 300,
-        origin: "Jalgaon",
-        destination: "Pune",
-        eta_hours: 18,
-        base_price_per_kg: 28,
-        current_price_per_kg: 28,
-        remaining_life_hours: 180,
-        initial_life_hours: 240,
-        status: "in_transit",
+        truck_id: t101
       },
       {
         code: "AGS-103",
         produce_type: "spinach",
         qty_kg: 80,
-        origin: "Ooty",
-        destination: "Chennai",
+        origin: "Hosur",
+        destination: "Koyambedu Market, Chennai",
         eta_hours: 12,
         base_price_per_kg: 60,
         current_price_per_kg: 52.8,
         remaining_life_hours: 30,
         initial_life_hours: 72,
         status: "at_risk",
-      },
-      {
-        code: "AGS-104",
-        produce_type: "strawberry",
-        qty_kg: 50,
-        origin: "Mahabaleshwar",
-        destination: "Bangalore",
-        eta_hours: 10,
-        base_price_per_kg: 220,
-        current_price_per_kg: 220,
-        remaining_life_hours: 42,
-        initial_life_hours: 48,
-        status: "in_transit",
-      },
-      {
-        code: "AGS-105",
-        produce_type: "mango",
-        qty_kg: 400,
-        origin: "Ratnagiri",
-        destination: "Mumbai",
-        eta_hours: 8,
-        base_price_per_kg: 150,
-        current_price_per_kg: 150,
-        remaining_life_hours: 140,
-        initial_life_hours: 168,
-        status: "in_transit",
+        truck_id: t101
       },
       {
         code: "AGS-106",
         produce_type: "green_peas",
         qty_kg: 150,
-        origin: "Surat",
-        destination: "Ahmedabad",
+        origin: "Hosur",
+        destination: "Koyambedu Market, Chennai",
         eta_hours: 14,
         base_price_per_kg: 85,
         current_price_per_kg: 85,
         remaining_life_hours: 80,
         initial_life_hours: 96,
         status: "in_transit",
+        truck_id: t101
+      },
+      {
+        code: "AGS-102",
+        produce_type: "banana",
+        qty_kg: 300,
+        origin: "Krishnagiri",
+        destination: "Koyambedu Market, Chennai",
+        eta_hours: 18,
+        base_price_per_kg: 28,
+        current_price_per_kg: 28,
+        remaining_life_hours: 180,
+        initial_life_hours: 240,
+        status: "in_transit",
+        truck_id: t102
+      },
+      {
+        code: "AGS-105",
+        produce_type: "mango",
+        qty_kg: 400,
+        origin: "Krishnagiri",
+        destination: "Koyambedu Market, Chennai",
+        eta_hours: 8,
+        base_price_per_kg: 150,
+        current_price_per_kg: 150,
+        remaining_life_hours: 140,
+        initial_life_hours: 168,
+        status: "in_transit",
+        truck_id: t102
+      },
+      {
+        code: "AGS-104",
+        produce_type: "strawberry",
+        qty_kg: 50,
+        origin: "Theni",
+        destination: "Koyambedu Market, Chennai",
+        eta_hours: 10,
+        base_price_per_kg: 220,
+        current_price_per_kg: 220,
+        remaining_life_hours: 42,
+        initial_life_hours: 48,
+        status: "in_transit",
+        truck_id: t103
+      },
+      {
+        code: "AGS-107",
+        produce_type: "tomato",
+        qty_kg: 300,
+        origin: "Theni",
+        destination: "Koyambedu Market, Chennai",
+        eta_hours: 10,
+        base_price_per_kg: 40,
+        current_price_per_kg: 40,
+        remaining_life_hours: 110,
+        initial_life_hours: 120,
+        status: "in_transit",
+        truck_id: t103
       }
     ])
     .select("id, code");
@@ -130,14 +179,13 @@ async function main() {
   if (shipErr) throw new Error("Shipments insert: " + shipErr.message);
   console.log("✅ Inserted shipments:", ships?.map((s) => s.code).join(", "));
 
-  // ── 3. Historical telemetry for non-demo shipments ─────────────────────────
+  // ── 4. Historical telemetry for non-demo shipments ─────────────────────────
   const agS102 = ships?.find((s) => s.code === "AGS-102")?.id;
   const agS103 = ships?.find((s) => s.code === "AGS-103")?.id;
 
   if (agS102 && agS103) {
     const now = new Date();
     const tRows = [
-      // AGS-102: normal readings at 15°C
       {
         shipment_id: agS102,
         temp_c: 15,
@@ -154,7 +202,6 @@ async function main() {
         burn_rate: 1.0,
         remaining_after: 185,
       },
-      // AGS-103: warm readings causing at_risk
       {
         shipment_id: agS103,
         temp_c: 22,
@@ -178,7 +225,7 @@ async function main() {
     else console.log("✅ Inserted historical telemetry rows");
   }
 
-  // ── 4. Ingest key ──────────────────────────────────────────────────────────
+  // ── 5. Ingest key ──────────────────────────────────────────────────────────
   const rawKey = "ags-" + randomBytes(24).toString("hex");
   const keyHash = sha256(rawKey);
 
