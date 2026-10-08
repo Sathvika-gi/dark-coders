@@ -1,231 +1,412 @@
 "use client";
-/**
- * app/marketplace/page.tsx
- * Retailer marketplace — live listing grid with flash markdown toast.
- * Polls /api/listings every 2 seconds and shows a toast when new listings appear.
- */
+import React, { useState, useEffect, useRef } from 'react'
+import { Navbar } from '@/components/Navbar'
+import { Toast } from '@/components/Toast'
+import { Drawer } from '@/components/Drawer'
+import { usePolling } from '@/hooks/usePolling'
+import { mapListingRows } from '@/lib/mappers'
+import type { UIListing } from '@/types/ui'
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { Navbar } from "@/components/Navbar";
-import { ListingCard } from "@/components/ListingCard";
-import { MarkdownToast } from "@/components/MarkdownToast";
-import { Store, TrendingDown, Clock } from "lucide-react";
+type Filter = 'all' | 'flash' | 'under24' | 'vegetable' | 'fruit'
 
-interface Listing {
-  id: string;
-  retailer_message: string;
-  original_price: number;
-  discounted_price: number;
-  discount_pct: number;
-  remaining_life_hours: number;
-  reason: string;
-  created_at: string;
-  shipments?: {
-    code: string;
-    produce_type: string;
-    qty_kg: number;
-    origin: string;
-    destination: string;
-  };
-  isNew?: boolean;
+function freshnessColor(hours: number) {
+  if (hours > 48) return { bg: 'var(--color-fresh-bg)', color: 'var(--color-leaf)' }
+  if (hours > 12) return { bg: 'var(--color-caution-bg)', color: '#B87A1A' }
+  return { bg: 'var(--color-critical-bg)', color: '#C0181D' }
 }
 
-type SortOption = "discount" | "freshness" | "newest";
+interface ListingCardProps {
+  listing: UIListing
+  onReserve: (listing: UIListing) => void
+}
 
-export default function MarketplacePage() {
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState<Listing | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
-  const seenIds = useRef<Set<string>>(new Set());
-  const lastFetchedAt = useRef<string | null>(null);
-
-  const fetchListings = useCallback(async () => {
-    try {
-      const url = lastFetchedAt.current
-        ? `/api/listings?since=${encodeURIComponent(lastFetchedAt.current)}`
-        : "/api/listings";
-
-      const res = await fetch(url);
-      if (!res.ok) return;
-
-      const { listings: fresh, fetched_at } = await res.json();
-      lastFetchedAt.current = fetched_at;
-
-      if (fresh && fresh.length > 0) {
-        // Find genuinely new listings
-        const newOnes = (fresh as Listing[]).filter((l) => !seenIds.current.has(l.id));
-        newOnes.forEach((l) => seenIds.current.add(l.id));
-
-        if (newOnes.length > 0) {
-          // Show toast for the most urgent new listing
-          const mostUrgent = newOnes.sort((a, b) => b.discount_pct - a.discount_pct)[0];
-          setToast({ ...mostUrgent, isNew: true });
-          // Auto-dismiss after 6s
-          setTimeout(() => setToast(null), 6000);
-        }
-
-        // Merge new listings into state
-        setListings((prev) => {
-          const existingIds = new Set(prev.map((l) => l.id));
-          const merged = [
-            ...newOnes.map((l) => ({ ...l, isNew: true })),
-            ...prev.map((l) => ({ ...l, isNew: false })),
-          ].filter((l) => existingIds.has(l.id) || !seenIds.current.has(l.id) || newOnes.some((n) => n.id === l.id));
-          // De-dup by id keeping only first occurrence
-          const seen = new Set<string>();
-          return merged.filter((l) => (seen.has(l.id) ? false : (seen.add(l.id), true)));
-        });
-      }
-
-      // On first load, fetch all listings
-      if (!lastFetchedAt.current || listings.length === 0) {
-        const allRes = await fetch("/api/listings");
-        if (allRes.ok) {
-          const { listings: all } = await allRes.json();
-          setListings((all ?? []).map((l: Listing) => ({ ...l, isNew: false })));
-          (all ?? []).forEach((l: Listing) => seenIds.current.add(l.id));
-        }
-      }
-    } catch (e) {
-      console.error("[marketplace] fetch error:", e);
-    } finally {
-      setLoading(false);
-    }
-  }, [listings.length]);
-
-  // Initial full fetch
-  useEffect(() => {
-    (async () => {
-      const res = await fetch("/api/listings");
-      if (res.ok) {
-        const { listings: all, fetched_at } = await res.json();
-        const allWithMeta = (all ?? []).map((l: Listing) => ({ ...l, isNew: false }));
-        setListings(allWithMeta);
-        allWithMeta.forEach((l: Listing) => seenIds.current.add(l.id));
-        lastFetchedAt.current = fetched_at;
-      }
-      setLoading(false);
-    })();
-  }, []);
-
-  // Poll for new listings every 2s
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      if (!lastFetchedAt.current) return;
-      try {
-        const res = await fetch(`/api/listings?since=${encodeURIComponent(lastFetchedAt.current)}`);
-        if (!res.ok) return;
-        const { listings: fresh, fetched_at } = await res.json();
-        lastFetchedAt.current = fetched_at;
-        if (fresh && fresh.length > 0) {
-          const newOnes = (fresh as Listing[]).filter((l) => !seenIds.current.has(l.id));
-          newOnes.forEach((l) => seenIds.current.add(l.id));
-          if (newOnes.length > 0) {
-            const mostUrgent = [...newOnes].sort((a, b) => b.discount_pct - a.discount_pct)[0];
-            setToast({ ...mostUrgent, isNew: true });
-            setTimeout(() => setToast(null), 6000);
-            setListings((prev) => {
-              const m = [...newOnes.map((l) => ({ ...l, isNew: true })), ...prev];
-              const seen = new Set<string>();
-              return m.filter((l) => (seen.has(l.id) ? false : (seen.add(l.id), true)));
-            });
-          }
-        }
-      } catch {}
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Sort listings
-  const sorted = [...listings].sort((a, b) => {
-    if (sortBy === "discount") return b.discount_pct - a.discount_pct;
-    if (sortBy === "freshness") return a.remaining_life_hours - b.remaining_life_hours;
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-  });
+function ListingCard({ listing, onReserve }: ListingCardProps) {
+  const fc = freshnessColor(listing.freshnessHours)
+  const formatHours = (h: number) => h >= 24 ? `\${Math.floor(h / 24)}d \${h % 24}h` : `\${Math.floor(h)}h`
 
   return (
-    <div style={{ minHeight: "100vh" }}>
+    <div
+      className="bg-card rounded-2xl border border-border overflow-hidden transition-all duration-200 hover:-translate-y-1 animate-scale-in card-shadow"
+    >
+      <div
+        className="relative flex items-center justify-center py-8"
+        style={{ background: 'linear-gradient(145deg, #FAF7F0 0%, #F0EDE6 100%)' }}
+      >
+        <span className="text-5xl">{listing.emoji}</span>
+
+        {listing.discountPct > 0 && (
+          <div
+            className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-xs font-bold"
+            style={{ background: 'var(--color-tomato)', color: 'white' }}
+          >
+            −{listing.discountPct}%
+          </div>
+        )}
+
+        {listing.isNew && (
+          <div
+            className="absolute top-3 left-3 px-2 py-0.5 rounded-full text-xs font-bold animate-new-badge bg-leaf text-white"
+          >
+            NEW
+          </div>
+        )}
+
+        {listing.isFlashSale && (
+          <div
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-caution-bg text-caution"
+          >
+            ⚡ Flash sale
+          </div>
+        )}
+      </div>
+
+      <div className="p-5">
+        <div className="flex items-start justify-between mb-1">
+          <div>
+            <h3 className="font-semibold text-sm leading-tight text-green-black">
+              {listing.produce}
+            </h3>
+            <p className="text-xs mt-0.5 text-muted">{listing.quantityStr}</p>
+          </div>
+          <span
+            className="text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ml-2"
+            style={{ background: fc.bg, color: fc.color }}
+          >
+            {formatHours(listing.freshnessHours)} left
+          </span>
+        </div>
+
+        <div className="flex items-baseline gap-2 mt-3 mb-2">
+          <span
+            className="text-2xl font-semibold tabular-nums font-serif text-green-black"
+          >
+            ₹{listing.discountedPrice}
+          </span>
+          {listing.discountPct > 0 && (
+            <span className="text-sm line-through text-muted">
+              ₹{listing.originalPrice}
+            </span>
+          )}
+        </div>
+
+        <p className="text-xs mb-4 leading-relaxed line-clamp-2 text-muted">
+          {listing.aiLine}
+        </p>
+
+        <button
+          onClick={() => onReserve(listing)}
+          disabled={listing.availableKg <= 0}
+          className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-150 hover:brightness-95 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-leaf card-shadow"
+        >
+          {listing.availableKg <= 0 ? 'Sold Out' : 'Reserve'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'flash', label: '⚡ Flash sale' },
+  { key: 'under24', label: '⏱ Under 24h' },
+  { key: 'vegetable', label: '🥦 Vegetables' },
+  { key: 'fruit', label: '🍊 Fruits' },
+]
+
+export default function RetailerMarketplace() {
+  const [activeFilter, setActiveFilter] = useState<Filter>('all')
+  const [sortBy, setSortBy] = useState<'freshness' | 'price' | 'discount'>('discount')
+  
+  const [toast, setToast] = useState<{ id: string, produce: string, discount: number, remainingHours: number } | null>(null)
+  const knownListingIds = useRef<Set<string>>(new Set())
+
+  const [reserving, setReserving] = useState<UIListing | null>(null)
+  const [qty, setQty] = useState(10) // 10kg default
+  const [reserveStatus, setReserveStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [reserveError, setReserveError] = useState('')
+
+  const { data: listingData, loading } = usePolling<{ listings: Record<string, unknown>[] }>('/api/listings', { intervalMs: 3000 })
+  
+  const rawListings = listingData?.listings ?? []
+  const listings: UIListing[] = rawListings.map(row => mapListingRows(row))
+
+  useEffect(() => {
+    // Check for *new* flash sales to show a toast
+    if (listings.length > 0) {
+      if (knownListingIds.current.size === 0) {
+        // Initial load, just track all so we don't spam toasts on mount
+        listings.forEach(l => knownListingIds.current.add(l.id))
+      } else {
+        const newFlashSales = listings.filter(l => !knownListingIds.current.has(l.id) && l.isFlashSale)
+        if (newFlashSales.length > 0) {
+          const l = newFlashSales[0]
+          setToast({ id: l.id, produce: l.produce, discount: l.discountPct, remainingHours: l.freshnessHours })
+        }
+        // Track everything new so we don't toast twice
+        listings.forEach(l => knownListingIds.current.add(l.id))
+      }
+    }
+  }, [listings])
+
+  const filtered = listings.filter(l => {
+    if (activeFilter === 'flash') return l.isFlashSale
+    if (activeFilter === 'under24') return l.freshnessHours < 24
+    if (activeFilter === 'vegetable') return l.category === 'vegetable'
+    if (activeFilter === 'fruit') return l.category === 'fruit'
+    return true
+  }).sort((a, b) => {
+    if (sortBy === 'freshness') return a.freshnessHours - b.freshnessHours
+    if (sortBy === 'price') return a.discountedPrice - b.discountedPrice
+    return b.discountPct - a.discountPct
+  })
+
+  const handleReserve = (listing: UIListing) => {
+    setReserving(listing)
+    setQty(Math.min(50, listing.availableKg))
+    setReserveStatus('idle')
+    setReserveError('')
+  }
+
+  const handleConfirm = async () => {
+    if (!reserving) return
+    setReserveStatus('loading')
+    setReserveError('')
+    
+    try {
+      const res = await fetch('/api/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listing_id: reserving.id, qty_kg: qty })
+      })
+      if (!res.ok) {
+        const d = await res.json()
+        throw new Error(d.error || 'Failed to reserve')
+      }
+      setReserveStatus('success')
+    } catch (e: unknown) {
+      setReserveStatus('error')
+      if (e instanceof Error) {
+        setReserveError(e.message)
+      } else {
+        setReserveError('Failed to reserve')
+      }
+    }
+  }
+
+  const handleCloseDrawer = () => {
+    setReserving(null)
+    setReserveStatus('idle')
+  }
+
+  return (
+    <div className="min-h-screen pb-16 bg-cream font-sans">
       <Navbar role="retailer" />
 
-      {/* Toast */}
-      {toast && (
-        <MarkdownToast
-          message={toast.retailer_message}
-          discountPct={toast.discount_pct}
-          remainingHours={toast.remaining_life_hours}
-          onClose={() => setToast(null)}
-        />
-      )}
+      {/* Smart Toast */}
+      <Toast
+        visible={!!toast}
+        message={toast ? `Flash markdown: \${toast.produce} −\${toast.discount}%` : ''}
+        subtext={toast ? `\${Math.floor(toast.remainingHours)}h freshness left — act fast` : ''}
+        onView={() => setToast(null)}
+        onDismiss={() => setToast(null)}
+      />
 
-      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px" }}>
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 32, flexWrap: "wrap", gap: 16 }}>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-              <Store size={22} color="#10b981" />
-              <h1 style={{ fontSize: 26, fontWeight: 800, color: "#f1f5f9", margin: 0 }}>
-                Fresh Marketplace
-              </h1>
-            </div>
-            <p style={{ color: "#64748b", fontSize: 14, margin: 0 }}>
-              Live markdown listings · Auto-refreshing every 2s
-            </p>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="mb-8">
+          <h1
+            className="text-3xl font-medium mb-1.5 font-serif text-green-black"
+          >
+            Fresh deals near you
+          </h1>
+          <p className="text-sm text-muted">
+            AI-priced perishables — reserve before they&apos;re gone
+          </p>
+        </div>
 
-          {/* Sort controls */}
-          <div style={{ display: "flex", gap: 8 }}>
-            {([
-              { key: "newest", icon: Clock, label: "Newest" },
-              { key: "discount", icon: TrendingDown, label: "Biggest Discount" },
-              { key: "freshness", icon: Clock, label: "Freshness" },
-            ] as const).map(({ key, icon: Icon, label }) => (
+        {/* Filters + sort */}
+        <div className="flex flex-wrap items-center gap-3 mb-8">
+          <div className="flex flex-wrap gap-2">
+            {FILTERS.map(f => (
               <button
-                key={key}
-                id={`sort-${key}`}
-                className={`btn ${sortBy === key ? "btn-primary" : "btn-ghost"}`}
-                onClick={() => setSortBy(key)}
-                style={{ fontSize: 12, padding: "7px 14px" }}
+                key={f.key}
+                onClick={() => setActiveFilter(f.key)}
+                className="px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-150"
+                style={{
+                  background: activeFilter === f.key ? 'var(--color-leaf)' : 'white',
+                  color: activeFilter === f.key ? 'white' : 'var(--color-muted)',
+                  border: `1px solid \${activeFilter === f.key ? 'var(--color-leaf)' : 'var(--color-border)'}`,
+                }}
               >
-                <Icon size={12} />
-                {label}
+                {f.label}
               </button>
             ))}
           </div>
+
+          <div className="ml-auto">
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value as 'freshness' | 'price' | 'discount')}
+              className="text-sm border border-border rounded-xl px-3 py-2 bg-white text-green-black outline-none"
+            >
+              <option value="discount">Sort: Biggest discount</option>
+              <option value="freshness">Sort: Freshest first</option>
+              <option value="price">Sort: Lowest price</option>
+            </select>
+          </div>
         </div>
 
-        {/* Listings grid */}
-        {loading ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20 }}>
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="skeleton" style={{ height: 280, borderRadius: 16 }} />
-            ))}
-          </div>
-        ) : sorted.length === 0 ? (
-          <div
-            className="glass-card"
-            style={{
-              padding: 60,
-              textAlign: "center",
-              color: "#475569",
-              fontSize: 15,
-            }}
-          >
-            <Store size={40} style={{ opacity: 0.2, marginBottom: 16 }} />
-            <div>No active listings right now.</div>
-            <div style={{ fontSize: 13, marginTop: 8 }}>
-              Listings appear automatically when a shipment&apos;s price drops. Ask the Distributor
-              to run a Simulate Spike on AGS-101.
-            </div>
+        {/* Listing grid */}
+        {loading && filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-3 text-muted">Loading deals...</div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-3">
+            <span className="text-4xl">🌿</span>
+            <p className="font-semibold text-green-black">No listings match this filter</p>
+            <button
+              onClick={() => setActiveFilter('all')}
+              className="text-sm text-leaf"
+            >
+              Clear filter
+            </button>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20 }}>
-            {sorted.map((l) => (
-              <ListingCard key={l.id} listing={l} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filtered.map(listing => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                onReserve={handleReserve}
+              />
             ))}
           </div>
         )}
-      </main>
+      </div>
+
+      {/* Reserve drawer */}
+      <Drawer
+        open={!!reserving}
+        onClose={handleCloseDrawer}
+        title={reserveStatus === 'success' ? 'Reserved!' : `Reserve \${reserving?.produce || ''}`}
+      >
+        {reserving && reserveStatus !== 'success' && (
+          <div className="flex flex-col h-full">
+            <div
+              className="flex items-center gap-4 p-4 rounded-2xl mb-6 bg-cream border border-border"
+            >
+              <span className="text-3xl">{reserving.emoji}</span>
+              <div>
+                <p className="font-semibold text-green-black">{reserving.produce}</p>
+                <p className="text-xs text-muted">{reserving.availableKg}kg available</p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-3 text-green-black">
+                Quantity (kg)
+              </label>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setQty(q => Math.max(10, q - 10))}
+                  className="w-10 h-10 rounded-xl border border-border flex items-center justify-center text-lg font-semibold transition-colors hover:bg-cream text-green-black"
+                >
+                  −
+                </button>
+                <span
+                  className="text-2xl font-semibold tabular-nums w-14 text-center font-serif text-green-black"
+                >
+                  {qty}
+                </span>
+                <button
+                  onClick={() => setQty(q => Math.min(reserving.availableKg, q + 10))}
+                  className="w-10 h-10 rounded-xl border border-border flex items-center justify-center text-lg font-semibold transition-colors hover:bg-cream text-green-black"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div
+              className="rounded-2xl p-4 mb-6 bg-cream border border-border"
+            >
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-muted">Unit price (per kg)</span>
+                <span className="text-green-black">₹{reserving.discountedPrice}</span>
+              </div>
+              <div className="flex justify-between text-sm mb-3">
+                <span className="text-muted">Quantity</span>
+                <span className="text-green-black">× {qty}</span>
+              </div>
+              <div
+                className="flex justify-between font-semibold pt-3 border-t border-border"
+              >
+                <span className="text-green-black">Total</span>
+                <span
+                  className="text-lg tabular-nums font-serif text-leaf"
+                >
+                  ₹{(reserving.discountedPrice * qty).toLocaleString('en-IN')}
+                </span>
+              </div>
+              {reserving.discountPct > 0 && (
+                <p className="text-xs mt-2 text-muted">
+                  Saved ₹{((reserving.originalPrice - reserving.discountedPrice) * qty).toLocaleString('en-IN')} vs original price
+                </p>
+              )}
+            </div>
+
+            {reserveError && (
+              <p className="text-critical text-sm mb-4 font-semibold text-center">{reserveError}</p>
+            )}
+
+            <button
+              onClick={handleConfirm}
+              disabled={reserveStatus === 'loading'}
+              className="w-full py-3.5 rounded-xl font-semibold text-white text-sm transition-all hover:brightness-95 bg-leaf card-shadow disabled:opacity-50"
+            >
+              {reserveStatus === 'loading' ? 'Processing...' : 'Confirm reservation →'}
+            </button>
+          </div>
+        )}
+
+        {reserving && reserveStatus === 'success' && (
+          <div className="flex flex-col items-center justify-center h-full gap-5 text-center">
+            <div
+              className="w-20 h-20 rounded-full flex items-center justify-center text-3xl animate-scale-in bg-fresh-bg text-leaf"
+            >
+              ✓
+            </div>
+            <div>
+              <h3
+                className="text-2xl font-medium mb-2 font-serif text-green-black"
+              >
+                Reserved!
+              </h3>
+              <p className="text-sm text-muted">
+                {qty}kg of {reserving.produce} reserved successfully.
+                <br />
+                Collect within {reserving.freshnessHours > 24 ? `\${Math.floor(reserving.freshnessHours / 24)} days` : `\${Math.floor(reserving.freshnessHours)} hours`}.
+              </p>
+            </div>
+            <div
+              className="w-full rounded-2xl p-4 bg-cream border border-border"
+            >
+              <div className="flex justify-between text-sm">
+                <span className="text-muted">Order total</span>
+                <span
+                  className="font-semibold tabular-nums font-serif text-leaf"
+                >
+                  ₹{(reserving.discountedPrice * qty).toLocaleString('en-IN')}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={handleCloseDrawer}
+              className="w-full py-3 rounded-xl font-medium border border-border transition-colors hover:bg-cream text-muted"
+            >
+              Continue browsing
+            </button>
+          </div>
+        )}
+      </Drawer>
     </div>
-  );
+  )
 }

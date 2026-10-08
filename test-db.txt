@@ -1,0 +1,5 @@
+◇ injected env (5) from .env.local
+Testing Database Connection...
+✅ Read successful. Found shipments: 2
+✅ Authenticator Keys active: 1
+Database connection is 100% healthy.

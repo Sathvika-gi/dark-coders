@@ -44,7 +44,7 @@ function getDb(): SupabaseClient {
 export const db = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
     const client = getDb();
-    const value = (client as any)[prop as string | symbol];
+    const value = ((client as unknown) as Record<string | symbol, unknown>)[prop as string | symbol];
     return typeof value === "function" ? value.bind(client) : value;
   },
 });

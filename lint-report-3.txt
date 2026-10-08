@@ -1,0 +1,18 @@
+D:\hackathons\zephoria\app\api\demo\reset\route.ts
+  8:10 1 'NextRequest' is defined but never used.
+D:\hackathons\zephoria\app\dashboard\page.tsx
+  108:41 1 'i' is defined but never used.
+D:\hackathons\zephoria\app\marketplace\page.tsx
+  248:58 2 Unexpected any. Specify a different type.
+D:\hackathons\zephoria\app\shipments\[id]\page.tsx
+  138:14 1 'e' is defined but never used.
+  195:7 2 'insightRaw' is never reassigned. Use 'const' instead.
+  200:11 1 'rem' is assigned a value but never used.
+  387:39 1 'val' is defined but never used.
+  391:39 1 'val' is defined but never used.
+D:\hackathons\zephoria\components\AIInsightCard.tsx
+  7:17 1 'Sparkles' is defined but never used.
+D:\hackathons\zephoria\components\ShipmentCard.tsx
+  31:9 1 'state' is assigned a value but never used.
+D:\hackathons\zephoria\lib\pipeline.ts
+  153:11 1 'templateInsight' is assigned a value but never used.

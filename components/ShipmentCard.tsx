@@ -1,138 +1,125 @@
 "use client";
-/**
- * components/ShipmentCard.tsx
- * Card shown on the dashboard grid for a single shipment.
- */
-
-import { useRouter } from "next/navigation";
-import { ShelfLifeGauge } from "./ShelfLifeGauge";
-import { RouteProgress } from "./RouteProgress";
-import { PRODUCE_PROFILES } from "@/lib/produce";
-import { Thermometer, Clock } from "lucide-react";
-
-interface Shipment {
-  id: string;
-  code: string;
-  produce_type: string;
-  qty_kg: number;
-  origin: string;
-  destination: string;
-  eta_hours: number;
-  base_price_per_kg: number;
-  current_price_per_kg: number;
-  remaining_life_hours: number;
-  initial_life_hours: number;
-  status: string;
-  last_reading_at: string | null;
-}
+import React from 'react'
+import { useRouter } from 'next/navigation'
+import { FreshnessDial } from './FreshnessDial'
+import type { UIShipment } from '@/types/ui'
 
 interface ShipmentCardProps {
-  shipment: Shipment;
+  shipment: UIShipment
+  loading?: boolean
 }
 
-const STATUS_STYLES: Record<string, { label: string; cls: string }> = {
-  in_transit: { label: "In Transit", cls: "badge-fresh" },
-  at_risk: { label: "At Risk", cls: "badge-warning" },
-  critical: { label: "Critical", cls: "badge-critical" },
-  delivered: { label: "Delivered", cls: "badge-info" },
-};
+export function ShipmentCard({ shipment, loading }: ShipmentCardProps) {
+  const router = useRouter()
 
-export function ShipmentCard({ shipment }: ShipmentCardProps) {
-  const router = useRouter();
-  const profile = PRODUCE_PROFILES[shipment.produce_type] ?? {
-    emoji: "📦", name: shipment.produce_type,
-  };
-  const status = STATUS_STYLES[shipment.status] ?? STATUS_STYLES.in_transit;
-  const discountPct =
-    shipment.current_price_per_kg < shipment.base_price_per_kg
-      ? Math.round(
-          ((shipment.base_price_per_kg - shipment.current_price_per_kg) /
-            shipment.base_price_per_kg) *
-            100
-        )
-      : 0;
+  if (loading) {
+    return (
+      <div className="bg-card rounded-2xl p-6 border border-border card-shadow">
+        <div className="flex items-start justify-between mb-4">
+          <div className="skeleton w-10 h-10 rounded-xl" />
+          <div className="skeleton w-16 h-5 rounded-full" />
+        </div>
+        <div className="skeleton h-5 w-28 mb-1" />
+        <div className="skeleton h-4 w-36 mb-4" />
+        <div className="skeleton h-20 w-full rounded-xl mb-4" />
+        <div className="skeleton h-2 w-full rounded-full" />
+      </div>
+    )
+  }
+
+  const ratio = shipment.remainingHours / shipment.totalHours
+  const state = ratio > 0.5 ? 'fresh' : ratio > 0.2 ? 'caution' : 'critical'
 
   return (
     <div
-      id={`shipment-card-${shipment.code}`}
-      className="glass-card"
-      style={{ padding: 20, cursor: "pointer", transition: "transform 0.18s" }}
+      className="bg-card rounded-2xl p-6 border border-border cursor-pointer transition-all duration-200 hover:-translate-y-1 group relative card-shadow"
       onClick={() => router.push(`/shipments/${shipment.id}`)}
-      onMouseEnter={(e) =>
-        ((e.currentTarget as HTMLElement).style.transform = "translateY(-3px)")
-      }
-      onMouseLeave={(e) =>
-        ((e.currentTarget as HTMLElement).style.transform = "translateY(0)")
-      }
+      tabIndex={0}
+      onKeyDown={e => e.key === 'Enter' && router.push(`/shipments/${shipment.id}`)}
+      role="button"
+      aria-label={`Shipment ${shipment.code}`}
     >
+      {shipment.isNew && (
+        <span
+          className="absolute top-4 right-4 text-xs font-semibold px-2 py-0.5 rounded-full animate-new-badge"
+          style={{ background: 'var(--color-tomato)', color: 'white' }}
+        >
+          NEW
+        </span>
+      )}
+
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 28 }}>{profile.emoji}</span>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 15, color: "#f1f5f9" }}>
-              {profile.name}
-            </div>
-            <div style={{ fontSize: 12, color: "#475569", fontWeight: 600 }}>
-              {shipment.code} · {shipment.qty_kg}kg
-            </div>
+      <div className="flex items-start gap-3 mb-3">
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 bg-sage-light"
+        >
+          {shipment.emoji}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-sm truncate text-green-black">
+            {shipment.produce}
+          </div>
+          <div className="text-xs font-mono mt-0.5 text-muted">
+            #{shipment.code}
           </div>
         </div>
-        <span className={status.cls} style={{ padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>
-          {status.label}
+      </div>
+
+      {/* Route */}
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-xs font-medium text-muted">{shipment.origin}</span>
+        <span className="text-xs" style={{ color: '#D4CCBB' }}>→</span>
+        <span className="text-xs font-medium text-muted">{shipment.destination}</span>
+      </div>
+
+      {/* Freshness Dial */}
+      <div className="flex justify-center mb-4">
+        <FreshnessDial
+          totalHours={shipment.totalHours}
+          remainingHours={shipment.remainingHours}
+          size={130}
+        />
+      </div>
+
+      {/* Temperature chip */}
+      <div className="flex items-center justify-between mb-4">
+        <span
+          className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium"
+          style={{
+            background: shipment.tempStatus === 'high' ? 'var(--color-critical-bg)' : 'var(--color-fresh-bg)',
+            color: shipment.tempStatus === 'high' ? '#C0181D' : 'var(--color-leaf)',
+          }}
+        >
+          🌡 {shipment.temperature}°C
+          {shipment.tempStatus === 'high' && ' · High'}
+        </span>
+
+        {/* View details arrow */}
+        <span
+          className="text-xs font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity text-leaf"
+        >
+          Details
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
         </span>
       </div>
 
-      {/* Gauge + Price */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <ShelfLifeGauge
-          remainingHours={shipment.remaining_life_hours}
-          initialHours={shipment.initial_life_hours}
-          size={100}
-        />
-
-        <div style={{ textAlign: "right" }}>
-          {discountPct > 0 && (
-            <div style={{ fontSize: 11, color: "var(--text-muted)", textDecoration: "line-through" }}>
-              ₹{shipment.base_price_per_kg}/kg
-            </div>
-          )}
+      {/* Route progress bar */}
+      <div>
+        <div className="h-1.5 rounded-full overflow-hidden border-border bg-[#EEE9DD]">
           <div
-            style={{
-              fontSize: 22,
-              fontWeight: 800,
-              color: discountPct > 0 ? "#ef4444" : "#10b981",
-            }}
-          >
-            ₹{shipment.current_price_per_kg.toFixed(2)}
-            <span style={{ fontSize: 12, fontWeight: 500 }}>/kg</span>
-          </div>
-          {discountPct > 0 && (
-            <span className="badge-critical" style={{ padding: "2px 8px", borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
-              -{discountPct}%
-            </span>
-          )}
+            className="h-full rounded-full transition-all bg-leaf"
+            style={{ width: `${shipment.progress}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between mt-1.5">
+          <span className="text-[10px] text-muted">
+            {shipment.progress}% delivered
+          </span>
+          <span className="text-[10px]">🚚</span>
         </div>
       </div>
-
-      {/* Temperature reading */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, fontSize: 13, color: "#94a3b8" }}>
-        <Thermometer size={13} />
-        <span>Last reading: {shipment.last_reading_at ? new Date(shipment.last_reading_at).toLocaleTimeString() : "No readings yet"}</span>
-      </div>
-
-      {/* Route progress */}
-      <RouteProgress
-        origin={shipment.origin}
-        destination={shipment.destination}
-        progressPct={Math.random() * 40 + 20} // visual only; no GPS
-      />
-
-      {/* ETA chip */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, fontSize: 12, color: "#64748b" }}>
-        <Clock size={11} />
-        <span>ETA: {shipment.eta_hours}h</span>
-      </div>
     </div>
-  );
+  )
 }

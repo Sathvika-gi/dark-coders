@@ -174,3 +174,16 @@ BEGIN
   RETURN v_count;
 END;
 $$;
+
+-- ─────────────────────────────────────────────
+-- 10. RESERVATIONS (added for UI redesign)
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS reservations (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  listing_id   UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+  qty_kg       NUMERIC NOT NULL,
+  total_price  NUMERIC NOT NULL,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE reservations ENABLE ROW LEVEL SECURITY;

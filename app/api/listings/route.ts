@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
   let query = db
     .from("listings")
-    .select("*, shipments(code, produce_type, qty_kg, origin, destination)")
+    .select("*, shipments(code, produce_type, qty_kg, origin, destination), reservations(qty_kg)")
     .eq("active", true)
     .order("created_at", { ascending: false })
     .limit(50);
@@ -32,8 +32,25 @@ export async function GET(req: NextRequest) {
     return Response.json({ error: "Failed to fetch listings" }, { status: 500 });
   }
 
+  // Compute available_kg based on reservations sum
+  const enhanced = data?.map((l: { shipments?: { qty_kg?: number } | { qty_kg?: number }[], reservations?: { qty_kg?: number }[], [key: string]: unknown }) => {
+    const reservedTotal = Array.isArray(l.reservations) 
+      ? l.reservations.reduce((sum: number, r: { qty_kg?: number }) => sum + (r.qty_kg || 0), 0)
+      : 0;
+    
+    // Check if shipments might be an array or object from Supabase (usually object for many-to-one, array for one-to-many)
+    const shipObj = Array.isArray(l.shipments) ? l.shipments[0] : l.shipments;
+    const available_kg = Math.max(0, (shipObj?.qty_kg || 0) - reservedTotal);
+    
+    delete l.reservations; // clean up payload
+    return {
+      ...l,
+      available_kg
+    };
+  });
+
   return Response.json({
-    listings: data ?? [],
+    listings: enhanced ?? [],
     fetched_at: new Date().toISOString(),
   });
 }

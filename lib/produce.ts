@@ -55,6 +55,22 @@ export const PRODUCE_PROFILES: Record<string, ProduceProfile> = {
     q10: 3.5,
     humidityBand: [88, 95],
   },
+  mango: {
+    name: "Mangoes",
+    emoji: "🥭",
+    baseLifeH: 168,
+    tRef: 13,
+    q10: 2.1,
+    humidityBand: [85, 90],
+  },
+  green_peas: {
+    name: "Green Peas",
+    emoji: "🫛",
+    baseLifeH: 96,
+    tRef: 4,
+    q10: 2.8,
+    humidityBand: [90, 95],
+  },
 };
 
 export function getProfile(produceType: string): ProduceProfile {

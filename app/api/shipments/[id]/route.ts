@@ -72,11 +72,18 @@ export async function GET(
     .limit(1)
     .maybeSingle();
 
+  const { getProfile } = await import("@/lib/produce");
+  const profile = getProfile(shipment.produce_type);
+
   return Response.json({
-    shipment,
+    shipment: {
+      ...shipment,
+      ideal_temp_range: [profile.tRef - 2, profile.tRef + 2]
+    },
     telemetry: telemetry ?? [],
     alerts: alerts ?? [],
     breakdown,
     active_listing: activeListing,
   });
 }
+
