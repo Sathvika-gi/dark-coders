@@ -1,0 +1,10 @@
+
+> zephoria@0.1.0 seed
+> npx tsx supabase/seed.ts
+
+◇ injected env (5) from .env.local
+🌱 Seeding AgroSense database...
+
+❌ Seed failed: Error: Shipments insert: Invalid path specified in request URL
+    at main (D:\hackathons\zephoria\supabase\seed.ts:104:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)

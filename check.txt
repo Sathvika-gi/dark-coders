@@ -1,0 +1,7 @@
+◇ injected env (5) from .env.local
+Shipments: [
+  { id: '27f43d17-be75-48bd-88bd-9061c1b41612', code: 'AGS-101' },
+  { id: '02117210-db49-4970-b383-e8ad799bad88', code: 'AGS-102' },
+  { id: 'beb62eda-c4f2-4e6f-8012-498df1569763', code: 'AGS-103' },
+  { id: '12e266b6-956d-4ed9-a5b7-20df154ad445', code: 'AGS-104' }
+]

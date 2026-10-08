@@ -216,24 +216,24 @@ async function runPipeline(shipment: any, readings: TelemetryReading[]): Promise
     (async () => {
       try {
         const [insight, retailerMsg] = await Promise.all([
-          generateInsight({
-            produceType: profile.name,
-            qtyKg: shipment.qty_kg,
-            origin: shipment.origin,
-            destination: shipment.destination,
-            remainingLifeH: newRemaining,
-            etaH: shipment.eta_hours,
-            tier: discountResult.tier,
-            readingsSummary,
-          }),
-          generateRetailerMessage({
-            produceType: profile.name,
-            qtyKg: shipment.qty_kg,
-            remainingLifeH: newRemaining,
-            originalPrice: shipment.base_price_per_kg,
-            discountedPrice: discountResult.newPrice,
-            discountPct: discountResult.discountPct,
-          }),
+          generateInsight(
+            profile.name,
+            shipment.qty_kg,
+            shipment.origin,
+            shipment.destination,
+            newRemaining,
+            shipment.eta_hours,
+            discountResult.tier,
+            readingsSummary
+          ),
+          generateRetailerMessage(
+            profile.name,
+            shipment.qty_kg,
+            newRemaining,
+            shipment.base_price_per_kg,
+            discountResult.newPrice,
+            discountResult.discountPct
+          ),
         ]);
 
         // Update listing with AI retailer message
